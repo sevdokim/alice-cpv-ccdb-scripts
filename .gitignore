@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# ROOT files
+*.root
+
+# Editor backups
+*~
+
+# Txt files
+*.txt
