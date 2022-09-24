@@ -3,6 +3,7 @@ void pushPersistentBadChannels(const char* destinationHost = "http://o2-ccdb.int
   o2::cpv::Geometry geo;
   // fill bad channels
   std::vector<int> badChs;
+  std::vector<int> badChsEmpty;
   short ccId, dil, gas, pad, relId[3];
   for (int iCh = 0; iCh <  geo.kNCHANNELS; iCh++) {
     geo.absIdToHWaddress(iCh, ccId, dil, gas, pad);
@@ -40,5 +41,8 @@ void pushPersistentBadChannels(const char* destinationHost = "http://o2-ccdb.int
   ccdb.init(destinationHost);
   destinationTimeStamp = destinationTimeStamp > 0 ? destinationTimeStamp : o2::ccdb::getCurrentTimestamp();
   std::cout << "Going to store " << badChs.size() << " bad channels with validity time = (" << destinationTimeStamp << "; " << 3385078236000 << ")\n";
-  ccdb.storeAsTFileAny(&badChs, "CPV/Config/PersistentBadChannels", metadata, destinationTimeStamp, 3385078236000);
+  // ccdb.storeAsTFileAny(&badChs, "CPV/Config/PersistentBadChannels", metadata, destinationTimeStamp, 3385078236000);
+  ccdb.storeAsTFileAny(&badChs, "CPV/Config/PersistentBadChannels", metadata, 1653609600000, 1663260047597);
+  metadata["Description2"] = "EmptyListOfChannels";
+  ccdb.storeAsTFileAny(&badChsEmpty, "CPV/Config/PersistentBadChannels", metadata, 1546300800000, 1554900770000);
 }
