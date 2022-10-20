@@ -51,7 +51,7 @@ o2::cpv::GainCalibData* readGainCalibData(const char* ccdbURI = "http://o2-ccdb.
       hAmplitude[iMod][ix][iz] = new TH1F(Form("hAmplitude_mod%d_x%d_z%d", iMod, ix, iz), Form("Amplitudes in module %d, X = %d, Z = %d", iMod, ix+1, iz+1), 1000, 0., 1000.);
       if (gcd->mAmplitudeSpectra[iCh].getNEntries() > 0) {
         hGCDMean[iMod]->SetBinContent(relId[1] + 1, relId[2] + 1, gcd->mAmplitudeSpectra[iCh].getMean());
-	gcd->mAmplitudeSpectra[iCh].fillBinData(hAmplitude[iMod][ix][iz]);
+	gcd->mAmplitudeSpectra[iCh].dumpToHisto(hAmplitude[iMod][ix][iz]);
       }
     }
     can->cd(iMod + 1);
@@ -94,5 +94,11 @@ void drawAmplitude()
   
   TCanvas *cAmpl = new TCanvas("cAmpl", "Amplitude ");
   cAmpl->cd();
+  hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->GetXaxis()->SetRangeUser(5., 1000.);
+  TF1* fLandau = new TF1("fLandau", "landau", 10., 1000.);
+  fLandau->SetParLimits(0, 0., 1.E6);
+  fLandau->SetParLimits(1, 200. / 10., 200. / 0.1);
+  fLandau->SetParLimits(2, 0., 1.E3);
+  hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->Fit(fLandau, "L", "", 10., 1000.);
   hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->Draw();
 }
