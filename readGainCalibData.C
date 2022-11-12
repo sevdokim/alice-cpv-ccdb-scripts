@@ -10,8 +10,9 @@
 
 TH1F* hAmplitude[5][128][60] = {0x0};
 
-o2::cpv::GainCalibData* readGainCalibData(const char* ccdbURI = "http://o2-ccdb.internal", long timeStamp = 0)
+o2::cpv::GainCalibData* readGainCalibData(const char* ccdbURI = "https://alice-ccdb.cern.ch/", long timeStamp = 0)
 {
+  gStyle->SetOptFit(1);
   auto& ccdbMgr = o2::ccdb::BasicCCDBManager::instance();
   ccdbMgr.setURL(ccdbURI);
   if (!ccdbMgr.isHostReachable()) {
@@ -48,20 +49,23 @@ o2::cpv::GainCalibData* readGainCalibData(const char* ccdbURI = "http://o2-ccdb.
       ix = relId[1];
       iz = relId[2];
       hGCDEntries[iMod]->SetBinContent(relId[1] + 1, relId[2] + 1, gcd->mAmplitudeSpectra[iCh].getNEntries());
-      hAmplitude[iMod][ix][iz] = new TH1F(Form("hAmplitude_mod%d_x%d_z%d", iMod, ix, iz), Form("Amplitudes in module %d, X = %d, Z = %d", iMod, ix+1, iz+1), 1000, 0., 1000.);
+      hAmplitude[iMod][ix][iz] = new TH1F(Form("hAmplitude_mod%d_x%d_z%d", iMod, ix, iz), Form("Amplitudes in module %d, X = %d, Z = %d", iMod + 2, ix+1, iz+1), 1000, 0., 1000.);
       if (gcd->mAmplitudeSpectra[iCh].getNEntries() > 0) {
         hGCDMean[iMod]->SetBinContent(relId[1] + 1, relId[2] + 1, gcd->mAmplitudeSpectra[iCh].getMean());
 	gcd->mAmplitudeSpectra[iCh].dumpToHisto(hAmplitude[iMod][ix][iz]);
       }
+      hAmplitude[iMod][ix][iz]->SetEntries(gcd->mAmplitudeSpectra[iCh].getNEntries());
     }
     can->cd(iMod + 1);
     gPad->AddExec("da", "drawAmplitude()");
     hGCDEntries[iMod]->GetXaxis()->SetTitle("X pad");
     hGCDEntries[iMod]->GetYaxis()->SetTitle("Z pad");
+    hGCDEntries[iMod]->SetStats(0);
     hGCDEntries[iMod]->Draw("colz");
     can->cd(iMod + 4);
     hGCDMean[iMod]->GetXaxis()->SetTitle("X pad");
     hGCDMean[iMod]->GetYaxis()->SetTitle("Z pad");
+    hGCDMean[iMod]->SetStats(0);
     hGCDMean[iMod]->Draw("colz");
     gPad->AddExec("da", "drawAmplitude()");
   }
@@ -94,11 +98,13 @@ void drawAmplitude()
   
   TCanvas *cAmpl = new TCanvas("cAmpl", "Amplitude ");
   cAmpl->cd();
+  cAmpl->SetLogy(1);
   hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->GetXaxis()->SetRangeUser(5., 1000.);
-  TF1* fLandau = new TF1("fLandau", "landau", 10., 1000.);
+  TF1* fLandau = new TF1("fLandau", "landau", 40., 1000.);
   fLandau->SetParLimits(0, 0., 1.E6);
   fLandau->SetParLimits(1, 200. / 10., 200. / 0.1);
   fLandau->SetParLimits(2, 0., 1.E3);
-  hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->Fit(fLandau, "L", "", 10., 1000.);
+  hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->Fit(fLandau, "L", "", 40., 1000.);
   hAmplitude[clickModule - 2][cellX - 1][cellZ - 1]->Draw();
+  
 }
